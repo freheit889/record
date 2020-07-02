@@ -22,4 +22,6 @@
 <span id="0"></span>
 ## Day 1
 ### 计划
-
+1.通过阅读 Rust by Example学习基础语法
+2.阅读部分Rust编程之道
+3.做一些编程题
