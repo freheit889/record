@@ -11,7 +11,8 @@ fn is_a_color_word(attempt: String) -> bool {
     attempt == "green" || attempt == "blue" || attempt == "red"
 }
 
-//或者  这里涉及到了隐式类型转换  String实现了Deref<Target=str> 所以在比较时被隐式的转换为了&str
+//或者  这里涉及到了隐式类型转换  String实现了Deref<Target=str> 所以在比较时被隐式的转换为了&str  &String与String是一致的;虽然 String没有实现copy属性 但是下面的运用没有用到word
+//所以没有报错
  
 fn main() {
     let word = "green"; // Try not changing this line :)
