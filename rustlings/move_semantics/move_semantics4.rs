@@ -7,6 +7,7 @@ fn main() {
 
     println!("{} has length {} content `{:?}`", "vec1", vec1.len(), vec1);
 }
+//vec1拥有了vec的所有权吗 只有Box在这种情况下是按值赋值
 
 // `fill_vec()` no longer take `vec: Vec<i32>` as argument
 fn fill_vec() -> Vec<i32> {
