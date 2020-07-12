@@ -121,5 +121,5 @@
 ## Day 12  
 ### 计划
    1、做leetcode上的题 大概2~3道    
-   2、看一遍riscv
+   2、看一遍riscv     
    3、看一下lab
