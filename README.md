@@ -9,14 +9,6 @@
 
 *七月*
 
-| Mon                  | Tues                 | Wed                  | Thur                 | Fri                  | Sat                  | Sun                  |
-|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|
-|                      |                      | 1                    | 2<br> ([D1](#0))     | 3<br> ([D2](#1))     | 4<br> ([D3](#2))     | 5 <br> ([D4](#3))    |
-| 6<br> ([D5](#4))     | 7<br> ([D6](#5))     | 8<br> ([D7](#6))     | 9<br> ([D7](#6)      | 10<br> ([D9](#6))    | 11<br> ([D10](#7))   | 12<br> ([D11](#8))   |
-| 13<br> ([D12](#9))   | 14<br> ([D13](#10))  | 15<br> ([D14](#11))  | 16<br> ([D15](#12))  | 17<br> ([D16](#13))  | 18<br> ([D17](#14))  | 19<br> ([D18](#15))  |
-| 20<br> ([D19](#16))  | 21<br> ([D20](#17))  | 22<br> ([D21](#18))  | 23<br> ([D22](#19))  | 24<br> ([D23](#20))  | 25<br> ([D24](#21))  | 26<br> ([D25](#22))  |
-| 28<br> ([D26](#23))  | 28<br> ([D27](#24))  | 29<br> ([D28](#25))  | 30                   | 31<br> ([D29](#26))  |                      |                      |
-
 * [Day   1    (2020-07-02)](#0)   
 * [Day   2    (2020-07-03)](#1)
 * [Day   3    (2020-07-04)](#2)
@@ -44,10 +36,12 @@
 * [Day   27   (2020-07-28)](#24)
 * [Day   28   (2020-07-29)](#25)
 * [Day   29   (2020-07-31)](#26)
+
+*八月*
 * [Day   30   (2020-08-03)](#27)
 * [Day   31   (2020-08-04)](#28)
 * [Day   32   (2020-08-05)](#29)
-
+* [Day   33   (2020-08-06)](#30)
 <span id="0"></span>
 ## Day 1
 ### 计划
@@ -331,17 +325,13 @@ virtual address is already mapped
 ```
 尝试找出错误，发现在kernel_end到memory_end之间的地址空间已经被映射? 很神奇
 
-更细化的找出问题 在map中
+更细化的找出问题 在map中    
 ```
 0xffffffff8013c
 0xffffffff8013c
 ```
-这个地址出现了两次???   最后发现是在linker.ld中在kernel_end之前没有对齐
-加上
-```
-. = ALIGN(4K);
-``` 
-就没有这个bug了
+这个地址出现了两次???   最后发现是在linker.ld中在kernel_end之前没有对齐      
+加上`. = ALIGN(4K);`就没有这个bug了
 
 之后在activate报错  后来发现1.9版本中没有mtval寄存器  我们需要将异常处理的代码在opensbi中进行处理 
 在opensbi中加入一些代码
@@ -350,4 +340,63 @@ uintptr_t epc = csr_read(CSR_MEPC) - 0xffffffff80000000u + 0x80000000u;
 ulong insn = *(uint32_t*)epc;
 ```
 
-就可以跑通了！继续搞线程，可能之后会进行flash与sd卡驱动的编写
+就可以跑通了！     
+
+
+将lab4下的文件夹搞过来  确认无语法错误之后 进行调试    
+出现了 `InstructionFault` 现在要找下问题的原因     
+改了下 `entry.asm` 发现出现了其他的问题    
+```
+sbi_trap_error: hart0: misaligned store handler failed (error -10)
+sbi_trap_error: hart0: mcause=0x0000000000000006 mtval=0xffffffff80029274
+sbi_trap_error: hart0: mepc=0xffffffff80027d94 mstatus=0x0000000000000820
+sbi_trap_error: hart0: ra=0x4605122861142ea5 sp=0xffffffff80029254
+sbi_trap_error: hart0: gp=0x80e7ffffc0974701 tp=0x00971228a009bc40
+sbi_trap_error: hart0: s0=0xef2a1308f32ad725 s1=0x0000b61724a13823
+sbi_trap_error: hart0: a0=0x85b2e8aeb9860613 a1=0x2a4080e7fffff097
+sbi_trap_error: hart0: a2=0x6526a009e0aee4aa a3=0xd617eb2e6586e72a
+sbi_trap_error: hart0: a4=0x621c326606130000 a5=0x4705033446090aa8
+sbi_trap_error: hart0: a6=0xc0977862fc3a65c6 a7=0xa009b32080e7ffff
+sbi_trap_error: hart0: s2=0x80e7000000970aa8 s3=0x0000d517a00972c0
+sbi_trap_error: hart0: s4=0xa517610c33050513 s5=0x8131d06505130019
+sbi_trap_error: hart0: s6=0x3c23f7aa1b88fbaa s7=0x06130000b61724a1
+sbi_trap_error: hart0: s8=0xf09785b2f82eb2a6 s9=0xf42a236080e7ffff
+sbi_trap_error: hart0: s10=0xefaa7522a009f02e s11=0x0000d617f3ae7582
+sbi_trap_error: hart0: t0=0xa009798080e70000 t1=0x324505130000d517
+sbi_trap_error: hart0: t2=0x05130019a517610c t3=0x1328621c2b860613
+sbi_trap_error: hart0: t4=0x75c247050bb44609 t5=0xffffc0976862ec3a
+sbi_trap_error: hart0: t6=0x1328a009ac4080e7
+```
+来发现是因为hanler里没有处理好      
+之后可以开始进行线程，当线程数大于2  就会出现      
+`virtual address is already mapped`
+
+当线程数等于1  就会出现
+```
+Thread {
+    thread_id: 0x2,
+    stack: Range {
+        start: VirtualAddress(
+            0x1000000,
+        ),
+        end: VirtualAddress(
+            0x1008000,
+        ),
+    },
+    context: None,
+} terminated: unimplemented interrupt type
+cause: Exception(StoreFault), stval: 1007ff8
+```
+猜测是因为内存分配出现了问题       
+
+果然是内存分配  之前在qemu中 所有的内存都是可用的，但是在k210中 一些内存空间是用不了的，之后将线程分配内存放在可用空间内，可以跑起来一个线程，但是在多线程时还是会产生问题
+`virtual address is already mapped`
+
+*这是为什么？不是有重叠区域检测吗 *
+
+在range.rs中 判断重叠是这样的     
+```
+self.start.into() < other.end.into() && self.end.into() > other.start.into()
+```
+
+
