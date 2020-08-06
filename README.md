@@ -343,7 +343,7 @@ ulong insn = *(uint32_t*)epc;
 就可以跑通了！     
 
 
-将lab4下的文件夹搞过来  确认无语法错误之后 进行调试    
+#### 将lab4下的文件夹搞过来  确认无语法错误之后 进行调试    
 出现了 `InstructionFault` 现在要找下问题的原因     
 改了下 `entry.asm` 发现出现了其他的问题    
 ```
@@ -367,11 +367,12 @@ sbi_trap_error: hart0: t2=0x05130019a517610c t3=0x1328621c2b860613
 sbi_trap_error: hart0: t4=0x75c247050bb44609 t5=0xffffc0976862ec3a
 sbi_trap_error: hart0: t6=0x1328a009ac4080e7
 ```
-来发现是因为hanler里没有处理好      
-之后可以开始进行线程，当线程数大于2  就会出现      
+后来发现是因为hanler里没有处理好      
+
+之后可以开始进行线程，当线程数大于2  就会出现           
 `virtual address is already mapped`
 
-当线程数等于1  就会出现
+当线程数等于1  就会出现     
 ```
 Thread {
     thread_id: 0x2,
@@ -387,16 +388,16 @@ Thread {
 } terminated: unimplemented interrupt type
 cause: Exception(StoreFault), stval: 1007ff8
 ```
-猜测是因为内存分配出现了问题       
+#### 猜测是因为内存分配出现了问题   
 
-果然是内存分配  之前在qemu中 所有的内存都是可用的，但是在k210中 一些内存空间是用不了的，之后将线程分配内存放在可用空间内，可以跑起来一个线程，但是在多线程时还是会产生问题
+果然是内存分配  之前在qemu中 所有的内存都是可用的，但是在k210中 一些内存空间是用不了的，之后将线程分配内存放在可用空间内，可以跑起来一个线程，但是在多线程时还是会产生问题     
 `virtual address is already mapped`
 
-*这是为什么？不是有重叠区域检测吗 *
+这是为什么？不是有重叠区域检测吗 
 
 在range.rs中 判断重叠是这样的     
 ```
 self.start.into() < other.end.into() && self.end.into() > other.start.into()
 ```
-
+在k210的移植中修改为<=即解决了当前的问题，但是尝试在qemu中复现没有这个问题了?那么神奇的吗    
 
