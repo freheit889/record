@@ -302,7 +302,52 @@
 
 <span id="28"></span>   
 ## Day 31
+今天的日程是国科大的团队进行报告，在复现吴一凡学长的lab2项目中出现了神奇的bug      
+发现在ubuntu上无法跑，但是在wsl中能够跑，很神奇。。      
+尝试复现  更换riscv的指令集从 imac->gc 发现可以跑了   但是怎么会跟指令集有关系呢？
+之后查看汇编内容  发现stack居然在bss段中。。然后将stack清了  怪不得报错
+更改了内容之后可以顺利的跑起来了
+
 
 <span id="29"></span>   
 ## Day 32
+今天的日程是       
+去清华伯努利参观并参加报告      
+在向老师的指导下细化了研究方向，打算继续搞rCore-Tutorial  尝试复现lab3 发现有很多问题。。慢慢搞吧
 
+<span id="30"></span>   
+## Day 33
+这里是我的rCore移植的地址：
+   https://github.com/freheit889/rCore-Tutorial
+
+### 今日记录：
+
+在大页表建立过之后，尝试将mapping加入其中，进行内核的重映射。
+在确认无语法错误之后，测试在k210上输出
+
+输出错误
+```      
+virtual address is already mapped   
+```
+尝试找出错误，发现在kernel_end到memory_end之间的地址空间已经被映射? 很神奇
+
+更细化的找出问题 在map中
+```
+0xffffffff8013c
+0xffffffff8013c
+```
+这个地址出现了两次???   最后发现是在linker.ld中在kernel_end之前没有对齐
+加上
+```
+. = ALIGN(4K);
+``` 
+就没有这个bug了
+
+之后在activate报错  后来发现1.9版本中没有mtval寄存器  我们需要将异常处理的代码在opensbi中进行处理 
+在opensbi中加入一些代码
+```
+uintptr_t epc = csr_read(CSR_MEPC) - 0xffffffffc0000000u + 0x80000000u;
+ulong insn = *(uint32_t*)epc;
+```
+
+就可以跑通了！继续搞线程，可能之后会进行flash与sd卡驱动的编写
