@@ -346,7 +346,7 @@ virtual address is already mapped
 之后在activate报错  后来发现1.9版本中没有mtval寄存器  我们需要将异常处理的代码在opensbi中进行处理 
 在opensbi中加入一些代码
 ```
-uintptr_t epc = csr_read(CSR_MEPC) - 0xffffffffc0000000u + 0x80000000u;
+uintptr_t epc = csr_read(CSR_MEPC) - 0xffffffff80000000u + 0x80000000u;
 ulong insn = *(uint32_t*)epc;
 ```
 
