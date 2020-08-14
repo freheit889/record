@@ -19,6 +19,7 @@
 * [Day   39   (2020-08-12)](#36)
 * [Day   40   (2020-08-13)](#37)
 * [Day   41   (2020-08-14)](#38)
+
 *七月*
 
 * [Day   1    (2020-07-02)](#0)   
@@ -499,13 +500,14 @@ https://github.com/rust-embedded/embedded-hal
 #### 今天的工作是继续复现
 第一个问题：逆向推导出的spi 没有关于cmd的操作  我想我应该在spi.rs中加进去    
 尝试一个最简单的输出函数，结果有意想不到的错误。。。    
-`sbi_emulate_csr_read: hartid0: invalid csr_num=0x300`
+`sbi_emulate_csr_read: hartid0: invalid csr_num=0x300`      
 
 是因为跟opensbi有冲突?      
 查了下手册，发现csr_num=0x300表示的是m态的csr     
 spi只能工作在m态?查了下库，发现有这样一段代码     
 
-`let mstatus = mstatus::read();`
+`let mstatus = mstatus::read();`    
+
 果然是读了m态的寄存器，但是问题来了，我该怎么做?     
 
 我看了下相关的库，确实是在裸机模式下进行访问的，所以我怎么通过opensbi来操作它呢     
