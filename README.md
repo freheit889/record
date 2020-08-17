@@ -597,7 +597,7 @@ unsafe{
 跟洛佳讨论了之后，rustsbi中关于spi这一部分不知道什么时候能完整支持，那我先搞C    
 
 #### 所以我现在有三个任务    
-1.	将sdk中的flash驱动改写为C    
+1.	将sdk中的flash驱动放到opensbi中           
 2.	在opensbi中支持读写sdk     
 3.	等待rustSBI spi部分的实现      
 
